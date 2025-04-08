@@ -1,0 +1,36 @@
+.homepage-container {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.homepage-container .input-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 40vh;
+  width: 40vw;
+}
+
+.homepage-container .input-container input {
+  font-size: larger;
+  padding: 10px 20px;
+  margin: 10px;
+}
+
+.homepage-container .input-container button {
+  font-size: larger;
+  padding: 10px 20px;
+  width: 50%;
+  margin: 10px;
+  cursor: pointer;
+  border: 2px solid blue;
+  border-radius: 12px;
+}
+
+.homepage-container .input-container button:hover {
+  background-color: rgb(156, 198, 200);
+}
