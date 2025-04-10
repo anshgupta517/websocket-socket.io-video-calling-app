@@ -1,36 +1,50 @@
-.homepage-container {
+* {
+  margin: 0;
+  padding: 0;
+  border: 0.2px solid red;
+  scrollbar-width: thin;
+}
+
+.playground-container {
   width: 100vw;
   height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.homepage-container .input-container {
+  background-color: #282c34;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 40vh;
-  width: 40vw;
+  overflow: hidden;
 }
 
-.homepage-container .input-container input {
-  font-size: larger;
-  padding: 10px 20px;
-  margin: 10px;
+.editor-container {
+  flex: 1;
+  min-height: 0;
+  display: flex;
 }
 
-.homepage-container .input-container button {
-  font-size: larger;
-  padding: 10px 20px;
-  width: 50%;
+.error-boundary {
+  padding: 20px;
+  border: 2px solid #ff6b6b;
+  border-radius: 4px;
+  background-color: #fff5f5;
+  color: #c92a2a;
   margin: 10px;
+  max-width: 800px;
+}
+
+.error-boundary h2 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.error-boundary details {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #fff;
+  border: 1px solid #ffc9c9;
+  border-radius: 4px;
+}
+
+.error-boundary summary {
   cursor: pointer;
-  border: 2px solid blue;
-  border-radius: 12px;
-}
-
-.homepage-container .input-container button:hover {
-  background-color: rgb(156, 198, 200);
+  color: #e03131;
+  font-weight: bold;
 }

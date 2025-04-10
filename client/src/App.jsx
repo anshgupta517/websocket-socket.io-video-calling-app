@@ -1,21 +1,44 @@
-import { Routes, Route } from "react-router-dom";
-import Homepage from "./pages/home";
-import Room from "./pages/room";
 import "./App.css";
-import { SocketProvider } from "./providers/socket";
-import { PeerProvider } from "./providers/peer";
+import Terminal from "./components/terminal";
+import ErrorBoundary from "./components/ErrorBoundary";
 
-function App() {
+const App = () => {
+  //   useEffect(() => {
+  //     const originalFetch = window.fetch;
+
+  //     const interceptRequests = () => {
+  //       console.log('Monitoring network requests...');
+
+  //       window.fetch = async (...args) => {
+  //         try {
+  //           const response = await originalFetch(...args);
+  //           return response;
+  //         } catch (error) {
+  //           console.error('Network request failed:', error);
+  //           throw error;
+  //         }
+  //       };
+  //     };
+
+  //     interceptRequests();
+
+  //     return () => {
+  //       window.fetch = originalFetch;
+  //     };
+  //   }, []);
   return (
-    <SocketProvider>
-      <PeerProvider>
-        <Routes>
-          <Route path="/" element={<Homepage />} />
-          <Route path="/room/:roomId" element={<Room />} />
-        </Routes>
-      </PeerProvider>
-    </SocketProvider>
+    <ErrorBoundary>
+      <div className="playground-container">
+        <div className="editor-container">
+          <div className="files"></div>
+          <div className="editor"></div>
+        </div>
+        <div className="terminal-container">
+          <Terminal />
+        </div>
+      </div>
+    </ErrorBoundary>
   );
-}
+};
 
 export default App;

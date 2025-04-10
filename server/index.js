@@ -1,56 +1,102 @@
 const express = require("express");
-const bodyParser = require("body-parser");
+const { createServer } = require("http");
 const { Server } = require("socket.io");
-const dotenv = require("dotenv");
-dotenv.config();
+const os = require("os");
+const cors = require("cors");
+const fs = require("fs");
+const path = require("path");
 
-const io = new Server({ cors: true });
 const app = express();
+const httpServer = createServer(app);
 
-app.use(bodyParser.json());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST"],
+    credentials: true,
+  })
+);
 
-const emailToSocketMapping = new Map();
-const socketToEmailMapping = new Map();
+const io = new Server(httpServer, {
+  cors: {
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
+
+var pty = require("node-pty");
+var shell = os.platform() === "win32" ? "powershell.exe" : "bash";
+
+var ptyProcess = pty.spawn(shell, [], {
+  name: "xterm-color",
+  cols: 80,
+  rows: 30,
+  cwd: process.env.HOME,
+  env: process.env,
+});
+
+app.use(express.json());
+app.use(express.static("public"));
 
 io.on("connection", (socket) => {
-  console.log("a new user connection");
-  socket.on("join-room", (data) => {
-    const { roomId, emailId } = data;
-    console.log(`user ${emailId} joined`);
-    emailToSocketMapping.set(emailId, socket.id);
-    socketToEmailMapping.set(socket.id, emailId);
-    socket.emit("user:join", { emailId, roomId });
-    socket.join(roomId);
-    io.to(roomId).emit("user-joined", { emailId, id: socket.id });
-  });
+  console.log("A user connected");
 
-  socket.on("call-user", (data) => {
-    const { newUserId, offer } = data;
-    io.to(newUserId).emit("incoming-call", {
-      existingUserId: socket.id,
-      offer,
-    });
-  });
-
-  socket.on("call-accepted", (data) => {
-    const { existingUserId, ans } = data;
-    socket.to(existingUserId).emit("call-finalised", { ans });
+  socket.on("terminal:write", (data) => {
+    ptyProcess.write(data);
   });
 
   socket.on("disconnect", () => {
-    const emailId = socketToEmailMapping.get(socket.id);
-    if (emailId) {
-      emailToSocketMapping.delete(emailId);
-      socketToEmailMapping.delete(socket.id);
-    }
-    console.log("disconnect");
+    console.log("User disconnected");
   });
 });
 
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log(`server is running on port: ${PORT}`);
+ptyProcess.on("data", (data) => {
+  io.emit("terminal:output", data);
 });
 
-io.listen(8001);
+ptyProcess.on("error", (error) => {
+  console.error("PTY Error:", error);
+  io.emit("terminal:error", error.message);
+});
+
+app.get("/", (req, res) => {
+  res.send("Server is running");
+});
+
+app.get("/files", async (req, res) => {
+  const fileTree = await generateFileTree("./");
+  res.json({ tree: fileTree });
+});
+
+const PORT = process.env.PORT || 3000;
+httpServer.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
+async function generateFileTree(directory) {
+  const tree = {};
+  await buildTree(directory, tree);
+
+  return tree;
+}
+
+async function buildTree(currentDirectory, currentTree) {
+  try {
+    const files = await fs.promises.readdir(currentDirectory);
+
+    for (const file of files) {
+      const filepath = path.join(currentDirectory, file);
+      const stat = await fs.promises.stat(filepath);
+
+      if (stat.isDirectory()) {
+        currentTree[file] = {};
+        await buildTree(filepath, currentTree[file]);
+      } else {
+        currentTree[file] = null;
+      }
+    }
+  } catch (error) {
+    console.error("Error reading directory:", error);
+  }
+}
